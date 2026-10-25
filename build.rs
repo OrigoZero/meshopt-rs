@@ -36,6 +36,14 @@ fn main() {
             .cpp_link_stdlib("c++")
             .cpp_set_stdlib("c++")
             .cpp(true);
+    } else if target.contains("android") {
+        // The static NDK C++ runtime, the one every C++ archive in
+        // libzero.so links.
+        build
+            .flag("-std=c++11")
+            .cpp_link_stdlib("c++_static")
+            .cpp(true);
+        println!("cargo:rustc-link-lib=c++abi");
     } else if target.contains("linux") || target.contains("windows-gnu") {
         build.flag("-std=c++11").cpp_link_stdlib("stdc++").cpp(true);
     }
