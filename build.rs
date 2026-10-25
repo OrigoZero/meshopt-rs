@@ -40,6 +40,21 @@ fn main() {
         build.flag("-std=c++11").cpp_link_stdlib("stdc++").cpp(true);
     }
 
+    // Every target compiles these sources to the same arithmetic, so a mesh
+    // simplifies and clusterizes to the same bytes wherever it is baked. GCC
+    // and Clang fuse a multiply and an add into one instruction wherever the
+    // target has one (every aarch64 target), which rounds once where the
+    // source rounds twice; `-ffp-contract=off` keeps both roundings. clang-cl
+    // fuses the same way and takes the option through `/clang:`. MSVC's own
+    // compiler fuses only under `/fp:contract` or `/fp:fast`, neither of which
+    // this build passes.
+    let compiler = build.get_compiler();
+    if compiler.is_like_clang_cl() {
+        build.flag("/clang:-ffp-contract=off");
+    } else if !compiler.is_like_msvc() {
+        build.flag("-ffp-contract=off");
+    }
+
     let disable_debug = env::var("DEBUG").unwrap() != "true";
     if disable_debug {
         build.define("NDEBUG", None);
